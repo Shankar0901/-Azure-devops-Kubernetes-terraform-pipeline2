@@ -1,0 +1,30 @@
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- script: echo k8s azure terraform!
+  displayName: 'Run a one-line script'
+- task: DownloadSecureFile@1
+  name: public_key
+  inputs:
+    secureFile: 'azure_rsa.pub'
+- task: TerraformCLI@0
+  inputs:
+    command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/configuration/iaac/azure/kubernetes'
+    commandOptions: '-var client_id =$(client_id)  var client_secret=$(client_secret) var ssh_public_key=$(ssh_public_key)'
+    backendType: 'azurerm'
+    backendAzureRmSubscriptionId: 'liuyeert7yuiol;kjhgdfxcvbnjkliou87'
+    ensureBackend: true
+    backendAzureRmResourceGroupName: 'azure-k8s-cluster-rg'
+    backendAzureRmResourceGroupLocation: 'westeurope'
+    backendAzureRmStorageAccountName: 'Shankar123'
+    backendAzureRmContainerName: 'Shankar123container'
+    backendAzureRmKey: 'san-key'
+    allowTelemetryCollection: true
+  
+
