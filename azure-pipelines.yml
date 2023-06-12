@@ -1,22 +1,4 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
 
-trigger:
-- main
-
-pool:
-  vmImage: ubuntu-latest
-
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
 trigger:
 - master
 
@@ -26,14 +8,12 @@ resources:
 variables:
   tag: '$(Build.BuildId)'
 
-# 2 stages for deploy to kubernetes
-# stage1 :build docker image and publish K8s configuration files to  artifact
-# stage2:download K8s configuration files and able to deploy
-
-
-# stage1 :biuld docker and pulish K8s configuration files artifact
-
 stages:
+
+# Stage 1
+# Build Docker Image
+# Publish the K8S Files
+
 - stage: Build
   displayName: Build image
   jobs:  
@@ -44,8 +24,8 @@ stages:
     steps:
     - task: Docker@2
       inputs:
-        containerRegistry: 'sankar1999-docker-hub'
-        repository: 'sankar1999/currency-exchange-devops'
+        containerRegistry: 'in28min-docker-hub'
+        repository: 'in28min/currency-exchange-devops'
         command: 'buildAndPush'
         Dockerfile: '**/Dockerfile'
         tags: '$(tag)'
@@ -57,11 +37,8 @@ stages:
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'manifest'
+        ArtifactName: 'manifests'
         publishLocation: 'Container'
-
-# stage2:download K8s configuration files and able to deploy
-
 - stage: Deploy
   displayName: Deploy image
   jobs:  
@@ -70,16 +47,19 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-      - task: DownloadPipelineArtifact@2
-        inputs:
-          buildType: 'current'
-          artifactName: 'manifest'
-          itemPattern: '**/*.yaml'
-          targetPath: '$(system.ArtifactsDirectory)'
-      - task: KubernetesManifest@1
-        inputs:
-          action: 'deploy'
-          connectionType: 'kubernetesServiceConnection'
-          namespace: 'Default'
-          manifests: '$(system.ArtifactsDirectory)/configuration/kubernetes/deployment.yaml'
-          containers: 'sankar1999/currency-exchange-devop:$(tag)'
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'current'
+        artifactName: 'manifests'
+        itemPattern: '**/*.yaml'
+        targetPath: '$(System.ArtifactsDirectory)'
+    - task: KubernetesManifest@0
+      inputs:
+        action: 'deploy'
+        kubernetesServiceConnection: 'azure-kubernetes-connection'
+        namespace: 'default'
+        manifests: '$(System.ArtifactsDirectory)/configuration/kubernetes/deployment.yaml'
+        containers: 'in28min/currency-exchange-devops:$(tag)'
+# Stage 2
+# Download the K8S Files
+# Deploy to K8S Cluster with Docker Image
