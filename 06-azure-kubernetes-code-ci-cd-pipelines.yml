@@ -5,7 +5,10 @@ resources:
 - repo: self
 
 variables:
-  tag: '$(Build.BuildId)'
+  tag: 23
+  
+  # '$(Build.BuildId)'
+
 # 2 stages for deploy to kubernetes
 # stage1 :build docker image and publish K8s configuration files to  artifact
 # stage2:download K8s configuration files and able to deploy
@@ -22,13 +25,13 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-    - task: Docker@2
-      inputs:
-        containerRegistry: 'sankar1999-docker-hub'
-        repository: 'sankar1999/currency-exchange-devop'
-        command: 'buildAndPush'
-        Dockerfile: '**/Dockerfile'
-        tags: '$(tag)'
+    # - task: Docker@2
+    #   inputs:
+    #     containerRegistry: 'sankar1999-docker-hub'
+    #     repository: 'sankar1999/currency-exchange-devop'
+    #     command: 'buildAndPush'
+    #     Dockerfile: '**/Dockerfile'
+    #     tags: '$(tag)'
     - task: CopyFiles@2
       inputs:
         SourceFolder: '$(System.DefaultWorkingDirectory)'
